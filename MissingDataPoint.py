@@ -1,4 +1,4 @@
-class MissingDataPoint(object):
+class MissingDataPoint():
     def __init__(self,imo,date):
         self.__key = 'init'
         self.imo = imo

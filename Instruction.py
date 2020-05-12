@@ -1,43 +1,57 @@
-class Instruction:
-    def __init__(self,MissingDataPoint,startDate,endDate,imo):
+class Instruction(object):
+    # def __init__(self,MissingDataPointCoveredByInstruction,startDate,endDate,imo):
+    #     self.__key = 'init'
+    #     self.MissingDataPoint = MissingDataPointCoveredByInstruction
+    #     self.startDate = startDate
+    #     self.endDate = endDate
+    #     self.imo = imo
+    def __init__(self):
         self.__key = 'init'
-        self.MissingDataPoint = MissingDataPoint
-        self.startDate = startDate
-        self.endDate = endDate
-        self.imo = imo
     def get_key(self):
         return self.__key
     def set_key(self,key):
         self.__key=key
 
-    def get_MissingDataPoint(self):
-        return self.MissingDataPoint
-    def set_MissingDataPoint(self, MissingDataPoint):
-        self.MissingDataPoint = MissingDataPoint
+    def get_MissingDataPointCoveredByInstruction(self):
+        return self.MissingDataPointCoveredByInstruction
+    def set_MissingDataPointCoveredByInstruction(self, MissingDataPointCoveredByInstruction):
+        self.MissingDataPointCoveredByInstruction = MissingDataPointCoveredByInstruction
+
+    MissingDataPointsCoveredByInstruction=property(get_MissingDataPointCoveredByInstruction,set_MissingDataPointCoveredByInstruction)
 
     def get_startDate(self):
         return self.startDate
     def set_startDate(self, startDate):
         self.startDate = startDate
 
+    startDate=property(get_startDate,set_startDate)
+
     def get_endDate(self):
         return self.endDate
     def set_endDate(self, endDate):
         self.endDate = endDate
 
-    # def get_str(self):
-    #     return self.__str
-    # def set_str(self,str):
-    #     self.__str=str
+    endDate=property(get_endDate,set_endDate)
+
+    def get_imo(self):
+        return self.imo
+    def set_imo(self,imo):
+        self.imo=imo
+
+    imo=property(get_imo,set_imo)
 
     def Instruction(self,imo):
         self.imo=imo
 
 
-    def setParsingInterval(self):
-        dates=self.get_MissingDataPoint()
+    def SetParsingIntervall(self):
+        priPoint=self.get_MissingDataPointCoveredByInstruction()
+        dates=[]
+        for i in range(len(priPoint)):
+            if(priPoint[i].Date):
+                dates.append(priPoint[i])
         if(len(dates))>0:
-            start_date=min(dates)
-            end_date=max(dates)
+            startDate=min(dates)
+            endDate=max(dates)
             
 
