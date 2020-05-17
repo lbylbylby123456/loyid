@@ -1,11 +1,9 @@
 from datetime import datetime
 import Instruction
-import MySQLdb
 import LloydsBrowserDriver
 import MissingDataPoint
-import sys
-class Program(object):
-    def __init__(self,MissingDates,PathMissingDates):
+class Program():
+    def __init__(self):
         self.__key = 'init'
     def get_key(self):
         return self.__key
@@ -57,7 +55,7 @@ class Program(object):
                 if (status !=  LloydsBrowserDriver.PageStatus.ShipNonExistent):
                     daysSinceLast += 1
 
-                    if (maxDaysBetweenDates >= daysSinceLast &&(dataPoint.Date.Date - lastDataPoint.Date.Date).TotalDays <= 1):
+                    if (maxDaysBetweenDates >= daysSinceLast and (dataPoint.Date.Date - lastDataPoint.Date.Date).TotalDays <= 1):
                         instruction.MissingDataPointCoveredByInstruction.append(dataPoint)
                     '''else:
                         instruction.SetParsingIntervall()
@@ -68,7 +66,7 @@ class Program(object):
                         daysSinceLast = 0
                      '''
                 else:
-                    instruction.MissingDataPointCoveredByInstruction.append(dataPoint);
+                    instruction.MissingDataPointCoveredByInstruction.append(dataPoint)
 
                 lastDataPoint = dataPoint
             print("Parse 2")
@@ -95,7 +93,7 @@ class Program(object):
 
     #def Kill_Process(self,processName):
 
-    def Proccess(instruction):
+    def Proccess(self,instruction):
         print("Process pppp")
 
         tableAndResult =driver.GetShipData(instruction)
@@ -126,16 +124,16 @@ class Program(object):
 
 
 
-    def GetMissingDataPointList(self,PathMissingDates):
+    def GetMissingDataPointList(self):
         print("GetMissingDataPorintList pppp")
-        file=PathMissingDates
+        file=self.PathMissingDates
         file.readline()
         while(file.readline()!=""):
             aDate=datetime.now
             fields = file.readline().split('\t')
             if fields[1].tostring():
                 aDate=fields[1].tostring()
-                aMissingDataPoint=MissingDataPoint.now#??
+                aMissingDataPoint=MissingDataPoint.MissingDataPoint()#??
                 imo=fields[0]
                 Date=aDate
                 self.MissingDates.append(aMissingDataPoint)
@@ -150,16 +148,66 @@ class Program(object):
             file1="content.txt"
             with open(file1,"a") as f:
                 f.write()
+                
     '''
-    def TransferAISDataToAzureSQL(dataTableAIS):
 
-        print("TransferAISDataToAzureSQL pppp---------------------------"+len(dataTableAIS.Rows))
+    '''def linesinsert(self, names, ages):
+        try:
+            # 连接数据库
+            self.isConnectionOpen()
+            # 创建游标
+            global cursor
+            cursor = self.__db.cursor()
+            # sql命令
+            sql = "insert into AIS_Data_Raw (name,age) value(%s,%s)"
+            # 执行sql命令
+            cursor.execute(sql, (names, ages))
+        except Exception as e:
+            print(e)
+        finally:
+            # 关闭游标
+            cursor.close()
+            # 提交
+            self.__db.commit()
+            # 关闭数据库连接
+            self.__db.close()'''
+
+    def TransferAISDataToAzureSQL(self,dataTableAIS):
+
+        print("TransferAISDataToAzureSQL pppp---------------------------"+str(len(dataTableAIS.rows)))
         if (len(dataTableAIS.rows)> 0):
             print("TransferAISDataToAzureSQL pppp---------------------------00000000000")
-            con = MySQLdb.connection(Properties.Settings.Default.SQLConnection + ";Initial Catalog=" + "AISdb")
-            con.Open()
+            file1 = "content.txt"
+            with open(file1, "w") as f:
+                f.write("")
+                f.close()
+            with open(file1, "a") as f:
+                f.write("imo  Date/Time  x  y  Destination  Heading  Speed over ground  Course over ground  Draught (m)  Source Type  ETA  Nearest Port  Distance (nm)\n")
+                for i in range (len(dataTableAIS.rows)):
+                    f.write(str(dataTableAIS.rows[i][0]))
+                    f.write(str(dataTableAIS.rows[i][1]))
+                    f.write(str(dataTableAIS.rows[i][2]))
+                    f.write(str(dataTableAIS.rows[i][3]))
+                    f.write(str(dataTableAIS.rows[i][4]))
+                    f.write(str(dataTableAIS.rows[i][5]))
+                    f.write(str(dataTableAIS.rows[i][6]))
+                    f.write(str(dataTableAIS.rows[i][7]))
+                    f.write(str(dataTableAIS.rows[i][8]))
+                    f.write(str(dataTableAIS.rows[i][9]))
+                    f.write(str(dataTableAIS.rows[i][10]))
+                    f.write(str(dataTableAIS.rows[i][11]))
+                    f.write(str(dataTableAIS.rows[i][12]+"\n"))
 
-            bulkCopy=SqlBulkCopy(con).now
+                f.close()
+
+
+
+
+            '''
+            con = MySQLdb.connection("localhost","AISdb","sa","4Fv*zBr984.xhz@!tYbQU4H-")
+            con.open()
+
+            bulkCopy=SqlBulkCopy(con)
             bulkCopy.BatchSize = 50000
             bulkCopy.DestinationTableName = "AIS_Data_Raw"
 
@@ -177,12 +225,15 @@ class Program(object):
 
             bulkCopy.ColumnMappings.append("Nearest Port", "nearestPort")
             bulkCopy.ColumnMappings.append("Distance (nm)", "distance")
+
             bulkCopy.BulkCopyTimeout = 60 * 60
             bulkCopy.WriteToServer(dataTableAIS)
             con.Close()
+            '''
 
 
 if __name__ == '__main__':
-    driver=SetUpLloydsBrowserDriver(Properties.Settings.Default.username,Properties.Settings.Default.password)
+    #driver=SetUpLloydsBrowserDriver(Properties.Settings.Default.username,Properties.Settings.Default.password)
+    driver=LloydsBrowserDriver.LloydsBrowserDriver().SetUpLloydsBrowserDriver("sa","4Fv*zBr984.xhz@!tYbQU4H-")
     A=Program()
     A.GetMissingDataPointList()

@@ -14,6 +14,11 @@ class Station():
     def test(self):
         print(self)
         print(self.__class__)
+
+def fact(n):
+    if n==1:
+        return 1
+    return n * fact(n - 1)
 url="https://kyfw.12306.cn/otn/resources/js/framework/station_name.js?station_version=1.9077"
 #url='https://kyfw.lesson10_1.cn/otn/resources/js/framework/station_name.js?station_version=1.9090'
 html_text=requests.get(url).text
@@ -28,3 +33,8 @@ for info in infos:
 for i in stations[:10]:
     i.printinfo()
     i.test()
+
+if __name__ == "__main__":
+    #A=Station
+    A=fact(3)
+    print(A)
