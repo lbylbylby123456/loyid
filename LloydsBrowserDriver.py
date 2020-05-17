@@ -27,19 +27,37 @@ class PageStatus(Enum):
 
 class LloydsBrowserDriver():
 #class LloydsBrowserDriver():
+    def __init__(self):
+        self.__key = 'init'
+
     lloydsWebSite="https://www.lloydslistintelligence.com/"
     #wait
     Url=requests.get(lloydsWebSite)
     driver = webdriver.Chrome()
+
+    def get_wait(self):
+        return self.wait
+    def set_wait(self, wait):
+        self.wait = wait
+    wait=property(get_wait,set_wait)
+
+    username=""
+    password=""
+
     def get_password(self):
         return self.password
     def set_password(self,password):
         self.password=password
 
+    #password = property(get_password, set_password)
+
     def get_username(self):
         return self.username
+
     def set_username(self,username):
         self.username=username
+
+    #username = property(get_username,set_username,)
 
     def get_PageStatus(self):
         return self.PageStatus
@@ -47,22 +65,26 @@ class LloydsBrowserDriver():
     def set_PageStatus(self,PageStatus):
         self.PageStatus =PageStatus
 
-    def LloydsBrowserDriver(self,service,options,username,password):
+    def LloydsBrowserDriver(self,service,options,username,password):#两个没用上
         time.sleep(30)#???
-        self.username=username
+        self.username = username
         self.password = password
 
     def SetUpLloydsBrowserDriver(self,username,password):
         print("SetUpLloydsBrowserDriver zzzz")
 
-        c_service = Service('xxx')
-        c_service.command_line_args()
-        c_service.start()
-        #driver = webdriver.Chrome()
-        self.driver.get("http://www.baidu.com")
+        # c_service = Service('xxx')
+        # c_service.command_line_args()
+        # c_service.start()
+        # #driver = webdriver.Chrome()
+        # self.driver.get("http://www.baidu.com")
 
         #chromeServices = ChromeDriverService.CreateDefaultService()
-        chromeServices = self.driver.service()
+        #chromeServices = self.driver.service()
+
+        #有问题
+        #chromeServices = self.driver.service()
+        chromeServices= Service.start
         chromeServices.HideCommandPromptWindow = True
         chromeServices.SuppressInitialDiagnosticInformation = True
 
@@ -80,13 +102,13 @@ class LloydsBrowserDriver():
 
     def GetShipData(self,instruction):
         print("GetShipData zzzz")
-        imoNo = instruction.imo.ToString()
+        imoNo = str(instruction.imo)
 
         #self.PageStatus = LloydsBrowserDriver.GoToShipMovements(instruction)
         self.PageStatus = self.GoToShipMovements(instruction)
         table = pandas.DataFrame()
 
-        if (self.PageStatus == PageStatus.SuccessfulOperation):
+        if (self.PageStatus == PageStatus.SuccessfulOperation.value):
             table = self.FillDataTable(instruction)
             self.CleanAISData(table, instruction)
         return (table, self.PageStatus)
@@ -94,8 +116,8 @@ class LloydsBrowserDriver():
     def GoToShipMovements(self,instruction):
 
         print("GoToShipMovements zzz")
-        result = PageStatus.SuccessfulOperation
-        imoNo = instruction.imo.ToString()
+        result = PageStatus.SuccessfulOperation.value
+        imoNo = str(instruction.imo)
         time.sleep(2)
         
         if (self.Url in {"https://www.lloydslistintelligence.com/","https://www.lloydslistintelligence.com"}):
@@ -112,8 +134,8 @@ class LloydsBrowserDriver():
             self.GoToLloydsMainPage()
             self.Login()
             result = self.GoToShipPageFromMainPage(imoNo)
-        if (result == PageStatus.SuccessfulOperation):
-            print("GoToShipMovements zzzz PageStatus.SuccessfulOperation")
+        if (result == PageStatus.SuccessfulOperation.value):
+            print("GoToShipMovements zzzz PageStatus.SuccessfulOperation.value")
             self.WaitFindElementByTagAndText("a", "Vessels", 0, 2, 2)
             if ("term" in self.Url):
                 time.sleep(0.5)
@@ -124,8 +146,8 @@ class LloydsBrowserDriver():
             if (self.CheckIfCorrectShipPage(imoNo)):
                 result = self.GoToAISDataPageFromShipPage()
             else:
-                return PageStatus.Error
-        print("GoToShipMovements zzzz PageStatus.error")
+                return PageStatus.Error.value
+        print("GoToShipMovements zzzz PageStatus.Error.value")
         return result
 
     # 需要Python3
@@ -155,7 +177,7 @@ class LloydsBrowserDriver():
             table.Columns.Add(header)
 
 
-    PageSource = driver.get('http://culture.dzwww.com/wx/')
+    #driver.page_source = driver.get('http://culture.dzwww.com/wx/')
 
     def FillDataTable(self,instruction):
         print("FileDataTable zzzz")
@@ -169,9 +191,9 @@ class LloydsBrowserDriver():
         isDateChanged = False
         attempts = 2
 
-        checkIfNoDataTextInTable = ("There is no data to display." in self.PageSource)
+        checkIfNoDataTextInTable = ("There is no data to display." in self.driver.page_source)
         if checkIfNoDataTextInTable:
-                self.PageStatus = PageStatus.NoDataFound
+                self.PageStatus = PageStatus.NoDataFound.value
         return tableData
 
     def ChangeFromToDate(self,fromDate, toDate):
@@ -206,12 +228,12 @@ class LloydsBrowserDriver():
 
         #wait.Timeout = TimeSpan(0, 0, 20)
         time.sleep(20)
-        #wait.Until(x= > !PageSource.Contains("Loading data"))
+        #wait.Until(x= > !driver.page_source.Contains("Loading data"))
         #wait.Timeout = new TimeSpan(0, 0, 30)
         time.sleep(30)
         #wait=timedelta(seconds=20)
         time.sleep(20)
-        while("Loading data" in self.PageSource):
+        while("Loading data" in self.driver.page_source):
             x=1
         time.sleep(20)
         #wait=timedelta(seconds=20)
@@ -244,7 +266,7 @@ class LloydsBrowserDriver():
         time.sleep(2)
         #wait.Timeout = new TimeSpan(0, 0, 1)
         time.sleep(1)
-        #PageSource.Contains("loading data")
+        #driver.page_source.Contains("loading data")
         #wait.Timeout = new TimeSpan(0, 0, 30)
         time.sleep(30)
         tableString = self.driver.find_element(By.TAG_NAME,"table").get_attribute("innerHTML")
@@ -310,8 +332,8 @@ class LloydsBrowserDriver():
                     if ("vessel" in a[j].get_attribute("href")):
                         a[j].click()
                         break
-                return PageStatus.SuccessfulOperation
-        return PageStatus.ShipNonExistent
+                return PageStatus.SuccessfulOperation.value
+        return PageStatus.ShipNonExistent.value
 
     def GoToShipFromShipPage(self,imoNo):
         print("GoToShipFromShipPage zzzz")
@@ -324,7 +346,7 @@ class LloydsBrowserDriver():
 
         time.sleep(0.5 + random.uniform(0,2))
         self.driver.find_element(By.CLASS_NAME,"lli-searchform__button").click()
-        return PageStatus.SuccessfulOperation
+        return PageStatus.SuccessfulOperation.value
 
 
     def ParseLongitudeAndLatitude(self,longOrLat):
@@ -375,7 +397,7 @@ class LloydsBrowserDriver():
         print("GoToAISDataPageFromShipPage zzzz AIS Positions clicked")
         self.WaitFindElementByTagAndText("h1", "AIS Positions", 0, 5, 5)
         print("GoToAISDataPageFromShipPage zzzz AIS Positions finished")
-        return PageStatus.SuccessfulOperation
+        return PageStatus.SuccessfulOperation.value
 
     def CheckIfCorrectShipPage(self,imoNo):
         print("CheckIfCorrentShipPage zzzz")
@@ -409,13 +431,13 @@ class LloydsBrowserDriver():
                 self.driver.find_element(By.CLASS_NAME,"lli-btn-icon").click()
                 try:
                     self.WaitFindElementByTagAndText("td", imoNo, 0, 2, 5)
-                    return PageStatus.SuccessfulOperation
+                    return PageStatus.SuccessfulOperation.value
                 except:
                     innerHtml = self.driver.find_element(By.TAG_NAME,"html").get_attribute("innerHTML")
                     if ("There is no data to display." in innerHtml):
-                        return PageStatus.ShipNonExistent
+                        return PageStatus.ShipNonExistent.value
                     else:
-                        return PageStatus.SuccessfulOperation
+                        return PageStatus.SuccessfulOperation.value
     def Login(self):
         print("Login zzzz")
 
