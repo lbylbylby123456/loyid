@@ -1,10 +1,15 @@
 from datetime import datetime
+import time
 import Instruction
 import LloydsBrowserDriver
 import MissingDataPoint
 class Program():
     def __init__(self):
         self.__key = 'init'
+        self.MissingDates = []
+        #self.PathMissingDates='C:\\Users\\Eric\\Desktop\\Lloyds+Parser+Fill+Out+Missing+Data+3\\Lloyds Parser Fill Out Missing Data 3\\MissingRemainingData 3.txt'
+        self.PathMissingDates = 'C:\\Users\\lenovo\Desktop\\Lloyds Parser Fill Out Missing Data 3\\Lloyds Parser Fill Out Missing Data\\MissingRemainingData 3.txt'
+
     def get_key(self):
         return self.__key
     def set_key(self,key):
@@ -17,69 +22,89 @@ class Program():
     def set_MissingDates(self,MissingDates):
         self.MissingDates=MissingDates
 
-    MissingDates=property(get_MissingDates,set_MissingDates)
+    #MissingDates=property(get_MissingDates,set_MissingDates)
 
     def get_PathMissingDates(self):
         return self.PathMissingDates
 
-    PathMissingDates=property(get_PathMissingDates)
+    #PathMissingDates = property(get_PathMissingDates)
+    driver = LloydsBrowserDriver.LloydsBrowserDriver()
+    driver.SetUpLloydsBrowserDriver("liboyang@lll13.onexmail.com", "li123456")
+    #老师请换成您自己的账号密码
 
-
-
-
-    def parse(self,MissingDates,maxDaysBetweenDates):
+    def parse(self, maxDaysBetweenDates):
         print("Parse pppp")
-        #i=0
+
+        ##!!!有问题这里！！！
+        ##读取数据库
         imolist=[]
-        for i in range (len(MissingDates)):
-            imolist.append(MissingDates[i])
+        for i in range(len(self.MissingDates)):
+            imolist.append(self.MissingDates[i][0])
         shipNo=0
-        #sys.path.append(r'C:\Users\lenovo\Desktop\teacher')
 
         while(shipNo<len(imolist)):
-            print("Parse shipno:"+shipNo)
+                print("Parse shipno:"+str(shipNo))
 
-            imo=imolist[shipNo]
-            #imolist = MissingDates
-            missingDatapointList = MissingDates
+                imo=imolist[shipNo]
+                #imolist = MissingDates
+                missingDatapointList=[]
 
-            daysSinceLast = 0
-            instruction = Instruction.Instruction()#???
-            instruction.Instruction(imo)
-            lastDataPoint = missingDatapointList.First()
-            status = LloydsBrowserDriver.PageStatus.DataFound
-            print("Parse 1")
-            #foreach(dataPoint in missingDatapointList)
-            for i in range(len(missingDatapointList)):
-                dataPoint=missingDatapointList[i]
-                if (status !=  LloydsBrowserDriver.PageStatus.ShipNonExistent):
-                    daysSinceLast += 1
+                def takeSecond(elem):
+                    return elem[1]
+                for i in range(len(self.MissingDates)):
+                    if(self.MissingDates[i][0]==imo):
+                        missingDatapointList.append(self.MissingDates[i])
+                        #missingDatapointList.sort(key=takeSecond)
 
-                    if (maxDaysBetweenDates >= daysSinceLast and (dataPoint.Date.Date - lastDataPoint.Date.Date).TotalDays <= 1):
+                print("missingDatapointList" + str(missingDatapointList[0]))
+                daysSinceLast = 0
+                instruction = Instruction.Instruction()
+                instruction.Instruction(imo)
+                lastDataPoint = missingDatapointList[0]
+                status = LloydsBrowserDriver.PageStatus.DataFound.value
+                print("Parse 1")
+
+                #foreach(dataPoint in missingDatapointList)
+                for i in range(len(missingDatapointList)):
+                    print("missingDatapointList" + str(missingDatapointList[i][0]))
+                    dataPoint = missingDatapointList[i]
+                    if (status != LloydsBrowserDriver.PageStatus.ShipNonExistent.value):
+                        daysSinceLast += 1
+                        print("dataPoint[1]",dataPoint[1])
+                        print("lastDataPoint[1]",lastDataPoint[1])
+                        delta=dataPoint[1] - lastDataPoint[1]
+                        interval = delta.days
+                        print("detal:"+str(delta))
+                        print("interval:" + str(interval))
+                        #!!!!有错误
+                        # x1=dataPoint[i].astype('timedelta64[D]').astype(int)
+                        # y1=dataPoint[i].astype('timedelta64[h]').astype(int)
+                        # x2=lastDataPoint[i].astype('timedelta64[D]').astype(int)
+                        # y2=lastDataPoint[i].astype('timedelta64[h]').astype(int)
+                        if (maxDaysBetweenDates >= daysSinceLast and abs(interval) <= 1):
+                            instruction.MissingDataPointCoveredByInstruction.append(dataPoint)
+                        '''else:
+                            instruction.SetParsingIntervall()
+                            status = Proccess(instruction)
+    
+                            instruction = Instruction(imo)
+                            instruction.MissingDataPointsCoveredByInstruction.append(dataPoint)
+                            daysSinceLast = 0
+                         '''
+                    else:
                         instruction.MissingDataPointCoveredByInstruction.append(dataPoint)
-                    '''else:
+                    lastDataPoint = dataPoint
+                print("Parse 2")
+
+                if (len(instruction.MissingDataPointCoveredByInstruction)> 0):
+                    if (status !=  LloydsBrowserDriver.PageStatus.ShipNonExistent.value):
                         instruction.SetParsingIntervall()
-                        status = Proccess(instruction)
-
-                        instruction = Instruction(imo)
-                        instruction.MissingDataPointsCoveredByInstruction.append(dataPoint)
-                        daysSinceLast = 0
-                     '''
-                else:
-                    instruction.MissingDataPointCoveredByInstruction.append(dataPoint)
-
-                lastDataPoint = dataPoint
-            print("Parse 2")
-
-            if (len(instruction.MissingDataPointsCoveredByInstruction())> 0):
-                if (status !=  LloydsBrowserDriver.PageStatus.ShipNonExistent):
-                    instruction.SetParsingIntervall()
-                    status = self.Proccess(instruction)
-                '''else:
-                    UpdateMissingDatapointList(instruction, status)
-                    WriteMissingDataPointList()
-                    WriteLog(instruction, status)'''
-            shipNo += 1
+                        status = self.Proccess(instruction)
+                    '''else:
+                        UpdateMissingDatapointList(instruction, status)
+                        WriteMissingDataPointList()
+                        WriteLog(instruction, status)'''
+                shipNo += 1
 
 
             #Kill_Process("CHROMEDRIVER")
@@ -91,52 +116,71 @@ class Program():
             #)
             #shipNo += 1
 
-    #def Kill_Process(self,processName):
+    #def Kill_Process(self,processName):#！！！没写
 
     def Proccess(self,instruction):
         print("Process pppp")
-
-        tableAndResult =driver.GetShipData(instruction)
+        tableAndResult = self.driver.GetShipData(instruction)
         status = tableAndResult[1]
         dataTable = tableAndResult[0]
 
+        ##！！！datatable
         #WriteLog(instruction, status);
 
-        # if (status != PageStatus.Error)
-        #     {
-        #         UpdateMissingDatapointList(instruction, status);
-        #     WriteMissingDataPointList();
-        #     TransferAISDataToAzureSQL(dataTable);
-        #     }
+        #if (status != PageStatus.Error):
+        if (status != LloydsBrowserDriver.PageStatus(4)):
+            #self.UpdateMissingDatapointList(instruction, status)
+            #self.WriteMissingDataPointList()
+            self.TransferAISDataToAzureSQL(dataTable)
 
         return status
 
 
     #def WriteLog(self,instruction,result):
 
-    #def  UpdateMissingDatapointList(self):
+    def UpdateMissingDatapointList(self,instruction,status):
+        print("UpdateMissingDatapointList pppp")
+        if (status == LloydsBrowserDriver.PageStatus.ShipNonExistent.value):
+            #决定一下有没有value！！
+            for i in range(len(self.MissingDates)):
+                print("MissingDates[i][0]" + self.MissingDates[i][0])
+                if(self.MissingDates[i][0]==instruction.imo):
+                    self.MissingDates.remove(self.MissingDates[i])
 
-    # def WriteMissingDataPointList(self):
-    #     print("WriteMissingDataPointList pppp")
-    #     file.WriteLine("Imo\tMissingDate");
-     #已经存在，可以不必写
-    #def WriteMissingDataPointList(self):
+    def WriteMissingDataPointList(self):
+        print("WriteMissingDataPointList pppp")
+        file=open(self.PathMissingDates)
+        file.writelines("Imo\tMissingDate")
+        for i in range(len(self.MissingDates)):
+            file.writelines(self.MissingDates[0]+"\t"+self.MissingDates[1])
 
 
 
     def GetMissingDataPointList(self):
         print("GetMissingDataPorintList pppp")
-        file=self.PathMissingDates
+        file = open(self.PathMissingDates,'r')
         file.readline()
-        while(file.readline()!=""):
-            aDate=datetime.now
-            fields = file.readline().split('\t')
-            if fields[1].tostring():
-                aDate=fields[1].tostring()
-                aMissingDataPoint=MissingDataPoint.MissingDataPoint()#??
-                imo=fields[0]
-                Date=aDate
-                self.MissingDates.append(aMissingDataPoint)
+        fields = file.readline().split('\t')
+        aDate = datetime.now
+        while(fields!=""):
+            if str(fields[1]):
+                temp=[]
+                #!!!AM
+                #aDate=time.strptime(fields[1].replace(' AM\n',''), "%Y-%m-%d %H:%M:%S")
+                aDate = datetime.strptime(fields[1].replace(' AM\n', ''), "%m/%d/%Y %H:%M:%S")
+                #print(aDate)
+                self.imo = fields[0]
+                self.Date = aDate
+                aMissingDataPoint=MissingDataPoint.MissingDataPoint(self.imo,self.Date)
+                print(aMissingDataPoint)
+                print(self.imo)
+                print(self.Date)
+                temp.append(self.imo)
+                temp.append(self.Date)
+                self.MissingDates.append(temp)
+            fields = file.readline()
+            if (not fields==''):
+                fields=fields.split('\t')
 
 
 
@@ -234,6 +278,6 @@ class Program():
 
 if __name__ == '__main__':
     #driver=SetUpLloydsBrowserDriver(Properties.Settings.Default.username,Properties.Settings.Default.password)
-    driver=LloydsBrowserDriver.LloydsBrowserDriver().SetUpLloydsBrowserDriver("sa","4Fv*zBr984.xhz@!tYbQU4H-")
     A=Program()
     A.GetMissingDataPointList()
+    A.parse(14)
