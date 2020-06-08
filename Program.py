@@ -3,13 +3,21 @@ import time
 import Instruction
 import LloydsBrowserDriver
 import MissingDataPoint
+import yaml
 class Program():
+
+    config_file = open('common.yml')
+    CONF = yaml.safe_load(config_file)
+    print(CONF)
+    #PathMissingDates=CONF['path']
     def __init__(self):
         self.__key = 'init'
         self.MissingDates = []
         #self.PathMissingDates='C:\\Users\\Eric\\Desktop\\Lloyds+Parser+Fill+Out+Missing+Data+3\\Lloyds Parser Fill Out Missing Data 3\\MissingRemainingData 3.txt'
-        self.PathMissingDates = 'C:\\Users\\lenovo\Desktop\\Lloyds Parser Fill Out Missing Data 3\\Lloyds Parser Fill Out Missing Data\\MissingRemainingData 3.txt'
+        #self.PathMissingDates = 'C:\\Users\\lenovo\Desktop\\Lloyds Parser Fill Out Missing Data 3\\Lloyds Parser Fill Out Missing Data\\MissingRemainingData 3.txt'
+        #self.PathMissingDates=None
 
+    PathMissingDates = CONF['path']
     def get_key(self):
         return self.__key
     def set_key(self,key):
@@ -27,9 +35,14 @@ class Program():
     def get_PathMissingDates(self):
         return self.PathMissingDates
 
+
+
     #PathMissingDates = property(get_PathMissingDates)
     driver = LloydsBrowserDriver.LloydsBrowserDriver()
-    driver.SetUpLloydsBrowserDriver("liboyang@lll13.onexmail.com", "li123456")
+
+
+
+    driver.SetUpLloydsBrowserDriver(CONF['user_name'], CONF['user_password'])
     #老师请换成您自己的账号密码
 
     def parse(self, maxDaysBetweenDates):

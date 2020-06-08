@@ -18,6 +18,7 @@ from datetime import datetime,timedelta
 import click
 import random
 import select
+
 class PageStatus(Enum):
     ShipNonExistent=0
     NoDataFound=1
@@ -29,8 +30,8 @@ class LloydsBrowserDriver():
 #class LloydsBrowserDriver():
     def __init__(self):
         self.__key = 'init'
-        self.username = 'liboyang@lll13.onexmail.com'
-        self.password = 'li123456'
+        self.username = None
+        self.password = None
         self.wait = None
         self.PageStatus = None
     #存疑
